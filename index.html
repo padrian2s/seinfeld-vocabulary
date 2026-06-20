@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seinfeld Vocabulary — EDA for ESL learners</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171c24; --panel2:#1e2530; --ink:#e6e9ef;
+    --muted:#9aa4b2; --accent:#ffd23f; --accent2:#4ea1ff; --line:#2a323d;
+    --good:#46c98b; --warn:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:28px 32px 18px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#1a2029,#0e1116)}
+  h1{margin:0;font-size:26px;letter-spacing:.3px}
+  h1 .y{color:var(--accent)}
+  .sub{color:var(--muted);margin-top:6px;max-width:780px}
+  .wrap{padding:22px 32px 60px;max-width:1280px;margin:0 auto}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0 8px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card .n{font-size:28px;font-weight:700;color:var(--accent)}
+  .card .l{color:var(--muted);font-size:13px;margin-top:2px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .panel h2{margin:0 0 4px;font-size:16px}
+  .panel p.hint{margin:0 0 10px;color:var(--muted);font-size:12.5px}
+  .full{grid-column:1/-1}
+  .plot{width:100%;height:340px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel)}
+  th:hover{color:var(--ink)}
+  td.word{font-weight:600;color:var(--accent);position:relative;cursor:help}
+  td.word.nodef{cursor:default}
+  td.word .tip{display:none;position:absolute;left:0;top:100%;z-index:50;
+    margin-top:6px;width:300px;background:#0a0d12;color:var(--ink);
+    border:1px solid var(--accent);border-radius:8px;padding:9px 11px;
+    font-weight:400;font-size:12.5px;line-height:1.45;font-style:normal;
+    box-shadow:0 8px 28px rgba(0,0,0,.6)}
+  td.word .tip b{color:var(--accent)}
+  td.word:hover .tip{display:block}
+  td.ex{color:var(--muted);font-style:italic;max-width:420px}
+  .tablewrap{max-height:560px;overflow:auto;border-radius:8px}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  input[type=search]{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    padding:9px 12px;border-radius:8px;min-width:240px;font-size:14px}
+  select{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:9px 10px;border-radius:8px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
+  .c-yiddish{background:#3a2a08;color:#ffd23f}
+  .c-coinage{background:#3a1530;color:#ff86d0}
+  .c-rare{background:#3a1212;color:#ff8e8e}
+  .c-uncommon{background:#12233a;color:#7cc0ff}
+  .c-very-rare{background:#2a1238;color:#c89bff}
+  .c-interjection{background:#23323a;color:#9adfe6}
+  .legend{color:var(--muted);font-size:12px;margin-top:8px}
+  .th2{font-weight:400;font-size:10.5px;color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .segbtn{background:var(--panel2);color:var(--muted);border:0;padding:9px 14px;
+    font-size:13px;cursor:pointer;font-weight:600}
+  .segbtn.active{background:var(--accent);color:#1a1300}
+  .segbtn+.segbtn{border-left:1px solid var(--line)}
+  td.eecell{font-weight:600}
+  .eehard{color:var(--warn)} .eeknown{color:var(--good)}
+  a{color:var(--accent2)}
+  .foot{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
+  code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="y">Seinfeld</span> Vocabulary Explorer <span style="font-size:14px;color:var(--muted)">· EDA for the non-native English learner</span></h1>
+  <div class="sub">Which English words in all 9 seasons are <b>uncommon in everyday English yet recur across the show</b> — the high-value vocabulary worth learning. Rarity is measured with the <a href="https://github.com/rspeer/wordfreq" target="_blank">wordfreq</a> Zipf scale (7 = <i>the</i>, 4 = everyday, 2 = rare). Character names are filtered out.</div>
+</header>
+
+<div class="wrap">
+  <div class="cards" id="cards"></div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Vocabulary rarity distribution</h2>
+      <p class="hint">How rare each distinct word is in general English. The left tail (low Zipf) is where learner-relevant words live.</p>
+      <div id="zipf" class="plot"></div>
+    </div>
+    <div class="panel">
+      <h2>Word categories</h2>
+      <p class="hint">Distinct words by type after filtering names. Most are common; a meaningful slice is uncommon/rare + show coinages.</p>
+      <div id="cats" class="plot"></div>
+    </div>
+
+    <div class="panel full">
+      <h2>The learning gap: frequency in the show vs. rarity in English</h2>
+      <p class="hint">Each dot is a word. Up = the show uses it a lot. Left = rare in everyday English. <b>Top-left = highest learning value</b> (you'll hear it often, but a textbook won't teach it). Hover for the word.</p>
+      <div id="scatter" class="plot" style="height:420px"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Seinfeld coinages &amp; catchphrases</h2>
+      <p class="hint">Invented words — fun cultural literacy, but <b>not</b> dictionary vocabulary. Don't study these as "English."</p>
+      <div id="coinage" class="plot"></div>
+    </div>
+    <div class="panel">
+      <h2>Most common conversational idioms</h2>
+      <p class="hint">Multi-word expressions (phrasal verbs / fillers) — the hardest part of English for non-natives because the meaning isn't literal.</p>
+      <div id="idioms" class="plot"></div>
+    </div>
+
+    <div class="panel full">
+      <h2>🇷🇴 🇵🇱 🇷🇺 Hardest words for an East-European speaker</h2>
+      <p class="hint">Words that are rare in English <b>and</b> absent from East-European languages (ro/pl/ru/cs/hu/bg/uk/sk) — no loanword or cognate to fall back on. A word like <i>weekend</i> or <i>babka</i> is excluded because it already exists in those languages. Bar length = difficulty score; hover for the meaning.</p>
+      <div id="eebar" class="plot" style="height:430px"></div>
+    </div>
+
+    <div class="panel full">
+      <h2>📚 The vocabulary list — uncommon real words to learn</h2>
+      <p class="hint">Sortable &amp; searchable. <b>Hover a word for its definition.</b> <b>Score</b> = recurrence × rarity. Click a column header to sort. Showing real dictionary words (Zipf ≥ 1.5, used ≥ 3 times).</p>
+      <div class="controls">
+        <div class="seg">
+          <button class="segbtn active" data-set="learner">Uncommon vocab</button>
+          <button class="segbtn" data-set="ee_hard">🇷🇴🇵🇱🇷🇺 East-European-hard</button>
+        </div>
+        <input type="search" id="q" placeholder="Search a word or example…">
+        <select id="catf">
+          <option value="">All categories</option>
+          <option value="rare">rare</option>
+          <option value="uncommon">uncommon</option>
+          <option value="yiddish">yiddish</option>
+        </select>
+        <span class="legend" id="rowcount"></span>
+      </div>
+      <div class="tablewrap">
+        <table id="tbl">
+          <thead><tr>
+            <th data-k="word">Word</th>
+            <th data-k="count" data-num="1">Uses ▾</th>
+            <th data-k="episodes" data-num="1">Episodes</th>
+            <th data-k="zipf" data-num="1">Zipf<br><span class="th2">English rarity</span></th>
+            <th data-k="ee" data-num="1">EE&nbsp;fam.<br><span class="th2">East-Eur.</span></th>
+            <th data-k="ee_score" data-num="1">EE&nbsp;diff.</th>
+            <th data-k="score" data-num="1">Score</th>
+            <th data-k="category">Type</th>
+            <th data-k="example">Example line</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Corpus: 172 episode transcripts from subslikescript.com · <span id="footstats"></span> ·
+    Rarity via wordfreq Zipf · Built with Plotly. Pipeline: <code>download.py</code> → <code>analyze.py</code> → <code>data.js</code> → this page.
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const D = window.DATA;
+const f = n => n.toLocaleString('en-US');
+
+// ---- summary cards ----
+const s = D.stats;
+document.getElementById('cards').innerHTML = [
+  [f(s.episodes),'episodes analyzed'],
+  [f(s.tokens),'words of dialogue'],
+  [f(s.vocab),'distinct words'],
+  [f(s.learner_words),'uncommon words to learn'],
+  [f(s.ee_hard_words),'hard for East-Europeans'],
+  [f(D.idioms.length),'idioms tracked'],
+].map(([n,l])=>`<div class="card"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+document.getElementById('footstats').textContent =
+  `${f(s.vocab)} distinct words, ${f(s.analyzed)} analyzed (used ≥2×)`;
+
+const LAYOUT = {
+  paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+  font:{color:'#e6e9ef'}, margin:{t:10,r:14,b:42,l:48},
+  xaxis:{gridcolor:'#2a323d',zerolinecolor:'#2a323d'},
+  yaxis:{gridcolor:'#2a323d',zerolinecolor:'#2a323d'}
+};
+const CFG = {displayModeBar:false, responsive:true};
+
+// ---- zipf histogram ----
+const zk = Object.keys(D.zipf_hist).map(Number).sort((a,b)=>a-b);
+Plotly.newPlot('zipf', [{
+  x: zk, y: zk.map(k=>D.zipf_hist[k]), type:'bar',
+  marker:{color: zk.map(k=> k<2.5?'#ff6b6b': k<3.5?'#4ea1ff':'#3a4654')},
+  hovertemplate:'Zipf %{x}: %{y} words<extra></extra>'
+}], {...LAYOUT, xaxis:{...LAYOUT.xaxis,title:'Zipf frequency (lower = rarer)'},
+     yaxis:{...LAYOUT.yaxis,title:'distinct words'}}, CFG);
+
+// ---- categories bar ----
+const ce = Object.entries(D.categories).sort((a,b)=>b[1]-a[1]);
+Plotly.newPlot('cats', [{
+  y: ce.map(e=>e[0]).reverse(), x: ce.map(e=>e[1]).reverse(), type:'bar', orientation:'h',
+  marker:{color:'#4ea1ff'}, hovertemplate:'%{y}: %{x} words<extra></extra>'
+}], {...LAYOUT, margin:{t:10,r:14,b:42,l:90}}, CFG);
+
+// ---- scatter: learning gap ----
+const sc = D.top_scatter;
+const catColor = {yiddish:'#ffd23f',coinage:'#ff86d0',rare:'#ff6b6b',
+  uncommon:'#4ea1ff','very-rare':'#c89bff',interjection:'#9adfe6',common:'#3a4654'};
+Plotly.newPlot('scatter', [{
+  x: sc.map(r=>r.zipf), y: sc.map(r=>r.count),
+  text: sc.map(r=>r.word), customdata: sc.map(r=>r.category),
+  mode:'markers', type:'scattergl',
+  marker:{size:7, opacity:.7, color: sc.map(r=>catColor[r.category]||'#3a4654'),
+          line:{width:0}},
+  hovertemplate:'<b>%{text}</b><br>used %{y}×, Zipf %{x}<br>%{customdata}<extra></extra>'
+}], {...LAYOUT, yaxis:{...LAYOUT.yaxis,title:'times used in the show',type:'log'},
+     xaxis:{...LAYOUT.xaxis,title:'Zipf in general English (← rarer)'}}, CFG);
+
+// ---- coinage bar ----
+const co = D.coinage.slice(0,12);
+Plotly.newPlot('coinage', [{
+  y: co.map(r=>r.word).reverse(), x: co.map(r=>r.count).reverse(),
+  type:'bar', orientation:'h', marker:{color:'#ff86d0'},
+  hovertemplate:'%{y}: %{x}×<extra></extra>'
+}], {...LAYOUT, margin:{t:10,r:14,b:42,l:100}}, CFG);
+
+// ---- idioms bar ----
+const id = D.idioms.slice(0,14);
+Plotly.newPlot('idioms', [{
+  y: id.map(r=>r.phrase).reverse(), x: id.map(r=>r.count).reverse(),
+  type:'bar', orientation:'h', marker:{color:'#46c98b'},
+  hovertemplate:'"%{y}": %{x}×<extra></extra>'
+}], {...LAYOUT, margin:{t:10,r:14,b:42,l:130}}, CFG);
+
+// ---- East-European hardest words bar ----
+const eh = D.ee_hard.slice(0,18);
+Plotly.newPlot('eebar', [{
+  y: eh.map(r=>r.word).reverse(), x: eh.map(r=>r.ee_score).reverse(),
+  type:'bar', orientation:'h', marker:{color:'#ff6b6b'},
+  text: eh.map(r=>r.word).reverse(),
+  customdata: eh.map(r=>[r.def||'—', r.zipf, r.ee]).reverse(),
+  hovertemplate:'<b>%{y}</b><br>%{customdata[0]}<br>'+
+    'EN Zipf %{customdata[1]} · EE familiarity %{customdata[2]}<extra></extra>'
+}], {...LAYOUT, margin:{t:10,r:14,b:42,l:120},
+     xaxis:{...LAYOUT.xaxis,title:'East-European difficulty score'}}, CFG);
+
+// ---- sortable / searchable table ----
+const tbody = document.querySelector('#tbl tbody');
+const DATASETS = {learner: D.learner, ee_hard: D.ee_hard};
+let rows = DATASETS.learner.slice();
+let sortK = 'count', sortDir = -1;
+
+function render(){
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const cf = document.getElementById('catf').value;
+  let r = rows.filter(x =>
+    (!cf || x.category===cf) &&
+    (!q || x.word.includes(q) || (x.example||'').toLowerCase().includes(q)));
+  r.sort((a,b)=>{
+    let va=a[sortK], vb=b[sortK];
+    if(typeof va==='string') return sortDir*va.localeCompare(vb);
+    return sortDir*(va-vb);
+  });
+  document.getElementById('rowcount').textContent = `${r.length} words`;
+  const esc = t => (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  tbody.innerHTML = r.slice(0,300).map(x=>{
+    const eeNote = x.ee < 2.0
+      ? `<br><span class="eehard">⚠ unknown in East-European languages</span>`
+      : `<br><span class="eeknown">✓ also exists in East-European languages (familiarity ${x.ee})</span>`;
+    const def = x.def
+      ? `<span class="tip"><b>${esc(x.word)}</b> — ${esc(x.def)}${eeNote}</span>`
+      : `<span class="tip"><b>${esc(x.word)}</b> — no dictionary definition (slang/coinage)${eeNote}</span>`;
+    const eeCls = x.ee < 2.0 ? 'eehard' : 'eeknown';
+    return `<tr>
+    <td class="word">${x.word}${def}</td>
+    <td>${x.count}</td><td>${x.episodes}</td><td>${x.zipf}</td>
+    <td class="eecell ${eeCls}">${x.ee}</td><td>${x.ee_score}</td><td>${x.score}</td>
+    <td><span class="pill c-${x.category}">${x.category}</span></td>
+    <td class="ex">${esc(x.example)}</td></tr>`;}).join('');
+}
+document.querySelectorAll('#tbl th').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;
+  if(sortK===k) sortDir*=-1; else {sortK=k; sortDir = th.dataset.num?-1:1;}
+  document.querySelectorAll('#tbl th').forEach(t=>t.textContent=t.textContent.replace(/[ ▾▴]+$/,''));
+  th.textContent += sortDir<0?' ▾':' ▴';
+  render();
+});
+document.getElementById('q').oninput = render;
+document.getElementById('catf').onchange = render;
+document.querySelectorAll('.segbtn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.segbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  rows = DATASETS[b.dataset.set].slice();
+  sortK = b.dataset.set==='ee_hard' ? 'ee_score' : 'count'; sortDir = -1;
+  render();
+});
+render();
+</script>
+</body>
+</html>

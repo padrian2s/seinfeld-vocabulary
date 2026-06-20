@@ -1,0 +1,14 @@
+# Raw copyrighted transcripts — not published (site runs off data.js)
+transcripts/
+
+# Build / scratch
+__pycache__/
+*.pyc
+download.log
+links.txt
+.serena/
+.playwright-mcp/
+*.jpeg
+
+# redundant with data.js (site uses data.js)
+data.json
