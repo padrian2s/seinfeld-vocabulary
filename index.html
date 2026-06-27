@@ -116,11 +116,12 @@
 
     <div class="panel full">
       <h2>📚 The vocabulary list — uncommon real words to learn</h2>
-      <p class="hint">Sortable &amp; searchable. <b>Hover a word for its definition.</b> <b>Score</b> = recurrence × rarity. Click a column header to sort. Showing real dictionary words (Zipf ≥ 1.5, used ≥ 3 times).</p>
+      <p class="hint">Switch lists: <b>Uncommon vocab</b> (useful words to learn) · <b>East-European-hard</b> (no cognate to fall back on) · <b>💎 Rare words</b> (the most obscure real English words in the show, rarest first). <b>Hover a word for its definition.</b> Click any column header to sort.</p>
       <div class="controls">
         <div class="seg">
           <button class="segbtn active" data-set="learner">Uncommon vocab</button>
           <button class="segbtn" data-set="ee_hard">🇷🇴🇵🇱🇷🇺 East-European-hard</button>
+          <button class="segbtn" data-set="rare">💎 Rare words</button>
         </div>
         <input type="search" id="q" placeholder="Search a word or example…">
         <select id="catf">
@@ -169,6 +170,7 @@ document.getElementById('cards').innerHTML = [
   [f(s.vocab),'distinct words'],
   [f(s.learner_words),'uncommon words to learn'],
   [f(s.ee_hard_words),'hard for East-Europeans'],
+  [f(s.rare_words),'rare / obscure words'],
   [f(D.idioms.length),'idioms tracked'],
 ].map(([n,l])=>`<div class="card"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
 document.getElementById('footstats').textContent =
@@ -242,7 +244,7 @@ Plotly.newPlot('eebar', [{
 
 // ---- sortable / searchable table ----
 const tbody = document.querySelector('#tbl tbody');
-const DATASETS = {learner: D.learner, ee_hard: D.ee_hard};
+const DATASETS = {learner: D.learner, ee_hard: D.ee_hard, rare: D.rare};
 let rows = DATASETS.learner.slice();
 let sortK = 'count', sortDir = -1;
 
@@ -286,8 +288,11 @@ document.getElementById('catf').onchange = render;
 document.querySelectorAll('.segbtn').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.segbtn').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
-  rows = DATASETS[b.dataset.set].slice();
-  sortK = b.dataset.set==='ee_hard' ? 'ee_score' : 'count'; sortDir = -1;
+  const set = b.dataset.set;
+  rows = DATASETS[set].slice();
+  if(set==='ee_hard'){ sortK='ee_score'; sortDir=-1; }
+  else if(set==='rare'){ sortK='zipf'; sortDir=1; }   // rarest first
+  else { sortK='count'; sortDir=-1; }
   render();
 });
 render();

@@ -210,6 +210,14 @@ def main():
     ee_hard = sorted([r for r in rows if r["ee_hard"]],
                      key=lambda r: r["ee_score"], reverse=True)
 
+    # Rare words: the most obscure / literary REAL English words in the show.
+    # Real = has a WordNet definition (filters coinages, names, junk). Sorted
+    # rarest-first (lowest Zipf), tie-broken by how often the show uses them.
+    rare = sorted(
+        [r for r in rows if r["def"] and r["zipf"] <= 3.0
+         and r["category"] not in ("coinage", "interjection")],
+        key=lambda r: (r["zipf"], -r["count"]))
+
     # --- idiom / phrasal-expression scan over the raw corpus ---
     fulltext = " ".join(
         " ".join(open(f, encoding="utf-8").read().split("\n")[2:]).lower()
@@ -233,9 +241,11 @@ def main():
             "episodes": len(files), "tokens": tokens_total,
             "vocab": len(total), "analyzed": len(rows),
             "learner_words": len(learner), "ee_hard_words": len(ee_hard),
+            "rare_words": len(rare),
         },
         "learner": learner[:400],
         "ee_hard": ee_hard[:400],
+        "rare": rare[:400],
         "all_rows": rows,
         "categories": dict(cat_counts),
         "zipf_hist": dict(sorted(zbins.items())),
@@ -251,11 +261,13 @@ def main():
         json.dump(data, f, ensure_ascii=False)
         f.write(";")
     print(f"wrote {OUT}: analyzed={len(rows)} learner={len(learner)} "
-          f"ee_hard={len(ee_hard)} yiddish={len(yiddish_rows)}")
+          f"ee_hard={len(ee_hard)} rare={len(rare)} yiddish={len(yiddish_rows)}")
     print("top 15 learner words:",
           ", ".join(f"{r['word']}({r['count']})" for r in learner[:15]))
     print("top 15 EE-hard words:",
           ", ".join(f"{r['word']}(ee{r['ee']})" for r in ee_hard[:15]))
+    print("top 15 rare words:",
+          ", ".join(f"{r['word']}(z{r['zipf']})" for r in rare[:15]))
 
 
 if __name__ == "__main__":
