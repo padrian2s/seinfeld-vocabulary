@@ -65,6 +65,10 @@
   .segbtn+.segbtn{border-left:1px solid var(--line)}
   td.eecell{font-weight:600}
   .eehard{color:var(--warn)} .eeknown{color:var(--good)}
+  .epbadge{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    color:var(--accent2);border-radius:5px;padding:1px 6px;font-size:11.5px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;cursor:help}
+  .epnote{color:#8fb3e6} .epnote b{color:var(--accent2)}
   a{color:var(--accent2)}
   .foot{color:var(--muted);font-size:12px;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
   code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12.5px}
@@ -137,7 +141,8 @@
           <thead><tr>
             <th data-k="word">Word</th>
             <th data-k="count" data-num="1">Uses ▾</th>
-            <th data-k="episodes" data-num="1">Episodes</th>
+            <th data-k="episodes" data-num="1">#&nbsp;Eps</th>
+            <th data-k="ep">First&nbsp;in</th>
             <th data-k="zipf" data-num="1">Zipf<br><span class="th2">English rarity</span></th>
             <th data-k="ee" data-num="1">EE&nbsp;fam.<br><span class="th2">East-Eur.</span></th>
             <th data-k="ee_score" data-num="1">EE&nbsp;diff.</th>
@@ -265,13 +270,20 @@ function render(){
     const eeNote = x.ee < 2.0
       ? `<br><span class="eehard">⚠ unknown in East-European languages</span>`
       : `<br><span class="eeknown">✓ also exists in East-European languages (familiarity ${x.ee})</span>`;
+    const epList = (x.eps||[]).slice(0,8).join(', ') + ((x.eps||[]).length>8?'…':'');
+    const epNote = x.ep
+      ? `<br><span class="epnote">📺 first in <b>${x.ep}</b> “${esc(x.ep_title)}” · appears in: ${epList}</span>`
+      : '';
     const def = x.def
-      ? `<span class="tip"><b>${esc(x.word)}</b> — ${esc(x.def)}${eeNote}</span>`
-      : `<span class="tip"><b>${esc(x.word)}</b> — no dictionary definition (slang/coinage)${eeNote}</span>`;
+      ? `<span class="tip"><b>${esc(x.word)}</b> — ${esc(x.def)}${epNote}${eeNote}</span>`
+      : `<span class="tip"><b>${esc(x.word)}</b> — no dictionary definition (slang/coinage)${epNote}${eeNote}</span>`;
     const eeCls = x.ee < 2.0 ? 'eehard' : 'eeknown';
+    const epCell = x.ep
+      ? `<span class="epbadge" title="${esc(x.ep_title)}">${x.ep}</span>`
+      : '';
     return `<tr>
     <td class="word">${x.word}${def}</td>
-    <td>${x.count}</td><td>${x.episodes}</td><td>${x.zipf}</td>
+    <td>${x.count}</td><td>${x.episodes}</td><td>${epCell}</td><td>${x.zipf}</td>
     <td class="eecell ${eeCls}">${x.ee}</td><td>${x.ee_score}</td><td>${x.score}</td>
     <td><span class="pill c-${x.category}">${x.category}</span></td>
     <td class="ex">${esc(x.example)}</td></tr>`;}).join('');

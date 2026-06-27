@@ -148,7 +148,7 @@ def main():
             for tok in WORD_RE.findall(clean):
                 low = clean_word(tok)
                 if low and low not in examples and len(low) > 2:
-                    examples[low] = clean
+                    examples[low] = (clean, s, e, name)
 
     print(f"files={len(files)} tokens={tokens_total} vocab={len(total)}")
 
@@ -185,11 +185,18 @@ def main():
             cat = "uncommon"
         else:
             cat = "common"
+        ex = examples.get(w)
+        ex_text = ex[0] if ex else ""
+        ex_ep = f"S{ex[1]:02d}E{ex[2]:02d}" if ex else ""
+        ex_title = ex[3] if ex else ""
+        # all episodes the word appears in, chronological
+        eps = sorted(f"S{a:02d}E{b:02d}" for a, b in epcount[w])
         rows.append({
             "word": w, "count": c, "episodes": len(epcount[w]),
             "zipf": round(zipf, 2), "score": score, "category": cat,
             "ee": round(ee, 2), "ee_score": ee_score,
-            "example": examples.get(w, ""), "def": define(w),
+            "example": ex_text, "ep": ex_ep, "ep_title": ex_title,
+            "eps": eps, "def": define(w),
         })
 
     rows.sort(key=lambda r: r["score"], reverse=True)
